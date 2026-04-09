@@ -7,7 +7,7 @@ const DAMPING = 0.97;
 const JITTER = 0.3;
 const BRIGHTNESS_DECAY = 0.82;
 const GAUSSIAN_RADIUS = 3;
-const NAME_BRIGHTNESS = 0.35;
+const NAME_BRIGHTNESS = 0.55;
 const ATTRACTOR_STRENGTH = 0.015;
 const PARTICLE_STAMP_INTENSITY = 0.6;
 const ATTRACTOR_STAMP_INTENSITY = 0.9;
@@ -83,20 +83,36 @@ function renderNameTarget(
   cols: number,
   rows: number,
 ): Float32Array {
-  const canvas = new OffscreenCanvas(cols, rows);
+  // Render at higher resolution for better letterform capture, then downsample
+  const scale = 8;
+  const w = cols * scale;
+  const h = rows * scale;
+  const canvas = new OffscreenCanvas(w, h);
   const ctx = canvas.getContext('2d')!;
 
-  const fontSize = Math.floor(rows * 0.65);
-  ctx.font = `200 ${fontSize}px Inter, system-ui, sans-serif`;
+  const fontSize = Math.floor(h * 0.55);
+  ctx.font = `300 ${fontSize}px Inter, system-ui, sans-serif`;
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'center';
   ctx.fillStyle = '#fff';
-  ctx.fillText('Dirk Knibbe', cols / 2, rows / 2);
+  ctx.fillText('Dirk Knibbe', w / 2, h / 2);
 
-  const data = ctx.getImageData(0, 0, cols, rows).data;
+  const data = ctx.getImageData(0, 0, w, h).data;
   const field = new Float32Array(cols * rows);
-  for (let i = 0; i < cols * rows; i++) {
-    field[i] = data[i * 4 + 3] / 255;
+
+  // Downsample by averaging scale x scale blocks
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      let sum = 0;
+      for (let dy = 0; dy < scale; dy++) {
+        for (let dx = 0; dx < scale; dx++) {
+          const px = c * scale + dx;
+          const py = r * scale + dy;
+          sum += data[(py * w + px) * 4 + 3];
+        }
+      }
+      field[r * cols + c] = sum / (scale * scale * 255);
+    }
   }
   return field;
 }
@@ -317,7 +333,7 @@ export default function PretextHero() {
     // Splat attractors
     splatGaussian(field, cols, rows, lx, ly, GAUSSIAN_RADIUS * 1.5, ATTRACTOR_STAMP_INTENSITY);
     if (mouse.active) {
-      splatGaussian(field, cols, rows, mx, my, GAUSSIAN_RADIUS * 2, ATTRACTOR_STAMP_INTENSITY);
+      splatGaussian(field, cols, rows, mx, my, GAUSSIAN_RADIUS * 3, 1.0);
     }
 
     // --- Add name target field ---
@@ -372,22 +388,17 @@ export default function PretextHero() {
 
     const onMouseMove = (e: MouseEvent) => {
       const rect = container.getBoundingClientRect();
-      mouseRef.current = {
-        x: (e.clientX - rect.left) / rect.width,
-        y: (e.clientY - rect.top) / rect.height,
-        active: true,
-      };
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
+      // Active if mouse is within the container bounds
+      const active = x >= 0 && x <= 1 && y >= 0 && y <= 1;
+      mouseRef.current = { x, y, active };
     };
 
-    const onMouseLeave = () => {
-      mouseRef.current.active = false;
-    };
-
-    container.addEventListener('mousemove', onMouseMove);
-    container.addEventListener('mouseleave', onMouseLeave);
+    // Use document-level listener so mouse works over child span elements
+    document.addEventListener('mousemove', onMouseMove);
     return () => {
-      container.removeEventListener('mousemove', onMouseMove);
-      container.removeEventListener('mouseleave', onMouseLeave);
+      document.removeEventListener('mousemove', onMouseMove);
     };
   }, [isMobile, prefersReducedMotion]);
 

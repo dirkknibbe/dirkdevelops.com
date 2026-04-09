@@ -183,8 +183,6 @@ function registerProximityTarget(el: HTMLElement, chars: CharElement[]) {
 
 function updateProximityEffects() {
   for (const target of proximityTargets) {
-    const rect = target.el.getBoundingClientRect();
-
     for (const c of target.chars) {
       // Get the center of this character in viewport coords
       const charRect = c.span.getBoundingClientRect();
@@ -221,11 +219,9 @@ function updateProximityEffects() {
   }
 }
 
-let proximityRafId: number | null = null;
-
 function proximityLoop() {
   updateProximityEffects();
-  proximityRafId = requestAnimationFrame(proximityLoop);
+  requestAnimationFrame(proximityLoop);
 }
 
 function initCursorProximity() {
