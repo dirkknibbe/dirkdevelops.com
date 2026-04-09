@@ -88,7 +88,8 @@ function splatGaussian(
 
 function init() {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (reducedMotion || window.innerWidth < 768) return;
+  if (reducedMotion) return;
+  const isMobile = window.innerWidth < 768;
 
   // Measure actual character size by rendering a probe element
   const probe = document.createElement('span');
@@ -107,9 +108,10 @@ function init() {
   const lookup = buildLookupTable(palette);
   let field = new Float32Array(COLS * ROWS);
 
-  // Create particles spread across the full grid
+  // Fewer particles on mobile for performance
+  const particleCount = isMobile ? 25 : PARTICLE_COUNT;
   const particles: Particle[] = [];
-  for (let i = 0; i < PARTICLE_COUNT; i++) {
+  for (let i = 0; i < particleCount; i++) {
     particles.push({
       x: Math.random() * COLS,
       y: Math.random() * ROWS,
@@ -149,7 +151,7 @@ function init() {
 
   let t = 0;
   let lastFrame = 0;
-  const FRAME_INTERVAL = 1000 / 20; // 20fps — subtle background doesn't need more
+  const FRAME_INTERVAL = 1000 / (isMobile ? 15 : 20); // slower on mobile
 
   function animate(now: number) {
     if (now - lastFrame < FRAME_INTERVAL) {
