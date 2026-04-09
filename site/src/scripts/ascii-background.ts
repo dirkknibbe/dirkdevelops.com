@@ -5,17 +5,16 @@
  */
 
 // ---- Config ----
-const COLS = 80;
-const ROWS = 40;
-const PARTICLE_COUNT = 60;
-const DAMPING = 0.96;
-const JITTER = 0.2;
-const BRIGHTNESS_DECAY = 0.75;
-const GAUSSIAN_RADIUS = 2.5;
-const MAX_OPACITY = 0.08; // Very muted — just a living texture
-const ATTRACTOR_STRENGTH = 0.012;
-const PARTICLE_STAMP_INTENSITY = 0.5;
-const ATTRACTOR_STAMP_INTENSITY = 0.7;
+const CHAR_W = 6.2; // approximate width of a monospace char at 9px
+const CHAR_H = 10;  // line-height
+const PARTICLE_COUNT = 120;
+const DAMPING = 0.97;
+const JITTER = 0.4;
+const BRIGHTNESS_DECAY = 0.78;
+const GAUSSIAN_RADIUS = 3;
+const ATTRACTOR_STRENGTH = 0.005; // weaker — particles spread more
+const PARTICLE_STAMP_INTENSITY = 0.4;
+const ATTRACTOR_STAMP_INTENSITY = 0.5;
 
 const PALETTE_CHARS = ' .`\'-,:;!~+<>=?*^"/\\|(){}[]#$@%&';
 
@@ -92,18 +91,22 @@ function init() {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reducedMotion || window.innerWidth < 768) return;
 
+  // Compute grid to fill viewport
+  const COLS = Math.floor(window.innerWidth / CHAR_W);
+  const ROWS = Math.floor(window.innerHeight / CHAR_H);
+
   const palette = buildPalette();
   const lookup = buildLookupTable(palette);
-  const field = new Float32Array(COLS * ROWS);
+  let field = new Float32Array(COLS * ROWS);
 
-  // Create particles
+  // Create particles spread across the full grid
   const particles: Particle[] = [];
   for (let i = 0; i < PARTICLE_COUNT; i++) {
     particles.push({
       x: Math.random() * COLS,
       y: Math.random() * ROWS,
-      vx: (Math.random() - 0.5) * 1.5,
-      vy: (Math.random() - 0.5) * 1.5,
+      vx: (Math.random() - 0.5) * 2,
+      vy: (Math.random() - 0.5) * 2,
     });
   }
 
@@ -112,7 +115,7 @@ function init() {
   bg.className = 'ascii-bg';
   bg.setAttribute('aria-hidden', 'true');
 
-  // Create cell grid
+  // Create cell grid filling the viewport
   const cells: HTMLSpanElement[][] = [];
   for (let r = 0; r < ROWS; r++) {
     const rowDiv = document.createElement('div');
@@ -120,7 +123,7 @@ function init() {
     const rowCells: HTMLSpanElement[] = [];
     for (let c = 0; c < COLS; c++) {
       const span = document.createElement('span');
-      span.textContent = ' ';
+      span.textContent = '\u00A0';
       rowDiv.appendChild(span);
       rowCells.push(span);
     }
@@ -147,21 +150,36 @@ function init() {
     // Decay
     for (let i = 0; i < field.length; i++) field[i] *= BRIGHTNESS_DECAY;
 
-    // Two attractors driven by scroll position + time
-    // Scroll moves them vertically through the grid
-    const scrollY = scrollProgress * ROWS;
-    const a1x = (Math.sin(t * 0.5) * 0.35 + 0.5) * COLS;
-    const a1y = (scrollY + Math.sin(t * 0.8) * ROWS * 0.15) % ROWS;
-    const a2x = (Math.cos(t * 0.3 + 2) * 0.35 + 0.5) * COLS;
-    const a2y = (scrollY * 1.3 + Math.cos(t * 0.6) * ROWS * 0.2) % ROWS;
+    // 4 attractors spread across the grid, orbiting on different paths
+    // Scroll shifts their vertical positions
+    const scrollOffset = scrollProgress * ROWS * 0.5;
+    const attractors = [
+      {
+        x: (Math.sin(t * 0.4) * 0.3 + 0.25) * COLS,
+        y: ((Math.sin(t * 0.6) * 0.3 + 0.3) * ROWS + scrollOffset) % ROWS,
+      },
+      {
+        x: (Math.cos(t * 0.3) * 0.3 + 0.75) * COLS,
+        y: ((Math.cos(t * 0.5 + 1) * 0.3 + 0.7) * ROWS + scrollOffset * 0.7) % ROWS,
+      },
+      {
+        x: (Math.sin(t * 0.25 + 3) * 0.4 + 0.5) * COLS,
+        y: ((Math.sin(t * 0.35 + 2) * 0.35 + 0.5) * ROWS + scrollOffset * 1.2) % ROWS,
+      },
+      {
+        x: (Math.cos(t * 0.5 + 5) * 0.35 + 0.5) * COLS,
+        y: ((Math.cos(t * 0.45 + 4) * 0.25 + 0.15) * ROWS + scrollOffset * 0.4) % ROWS,
+      },
+    ];
 
-    // Update particles
+    // Update particles — each attracted to nearest attractor
     for (const p of particles) {
-      // Find nearest attractor
-      const d1 = (p.x - a1x) ** 2 + (p.y - a1y) ** 2;
-      const d2 = (p.x - a2x) ** 2 + (p.y - a2y) ** 2;
-      const ax = d1 < d2 ? a1x : a2x;
-      const ay = d1 < d2 ? a1y : a2y;
+      let nearDist = Infinity;
+      let ax = p.x, ay = p.y;
+      for (const a of attractors) {
+        const d = (p.x - a.x) ** 2 + (p.y - a.y) ** 2;
+        if (d < nearDist) { nearDist = d; ax = a.x; ay = a.y; }
+      }
 
       const dx = ax - p.x;
       const dy = ay - p.y;
@@ -185,8 +203,9 @@ function init() {
     }
 
     // Splat attractors
-    splatGaussian(field, COLS, ROWS, a1x, a1y, GAUSSIAN_RADIUS * 1.5, ATTRACTOR_STAMP_INTENSITY);
-    splatGaussian(field, COLS, ROWS, a2x, a2y, GAUSSIAN_RADIUS * 1.5, ATTRACTOR_STAMP_INTENSITY);
+    for (const a of attractors) {
+      splatGaussian(field, COLS, ROWS, a.x, a.y, GAUSSIAN_RADIUS * 1.5, ATTRACTOR_STAMP_INTENSITY);
+    }
 
     // Render
     for (let r = 0; r < ROWS; r++) {
