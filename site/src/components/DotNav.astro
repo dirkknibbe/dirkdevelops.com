@@ -1,0 +1,41 @@
+<div class="dot-nav" id="dotNav">
+  <a href="#hero" class="active" data-section="hero"></a>
+  <a href="#projects" data-section="projects"></a>
+  <a href="#experience" data-section="experience"></a>
+  <a href="#about" data-section="about"></a>
+  <a href="#contact" data-section="contact"></a>
+</div>
+
+<script>
+  // Section-level observer: dot nav + section visibility
+  const sectionObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const id = entry.target.id;
+          document.querySelectorAll('.dot-nav a').forEach((dot) => {
+            dot.classList.toggle('active', dot.dataset.section === id);
+          });
+          entry.target.classList.add('visible');
+        }
+      });
+    },
+    { threshold: 0.3, rootMargin: '-10% 0px' }
+  );
+
+  document.querySelectorAll('section[id]').forEach((s) => sectionObserver.observe(s));
+
+  // Element-level observer: reveal animations
+  const revealObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('show');
+        }
+      });
+    },
+    { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+  );
+
+  document.querySelectorAll('.reveal:not(.show)').forEach((el) => revealObserver.observe(el));
+</script>
