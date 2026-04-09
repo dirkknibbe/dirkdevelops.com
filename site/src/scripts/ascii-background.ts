@@ -91,13 +91,10 @@ function init() {
   if (reducedMotion) return;
   const isMobile = window.innerWidth < 768;
 
-  // Measure actual character size — use mobile-matched styles on small screens
-  const fontSize = isMobile ? '10px' : '11px';
-  const lineHeight = isMobile ? '28px' : '18px';
-  const letterSpacing = isMobile ? '6px' : '2px';
+  // Measure actual character size by rendering a probe element
   const probe = document.createElement('span');
   probe.textContent = 'M';
-  probe.style.cssText = `font-family:ui-monospace,"SF Mono",Monaco,Consolas,monospace;font-size:${fontSize};line-height:${lineHeight};letter-spacing:${letterSpacing};position:absolute;visibility:hidden;white-space:pre;`;
+  probe.style.cssText = 'font-family:ui-monospace,"SF Mono",Monaco,Consolas,monospace;font-size:11px;line-height:18px;letter-spacing:2px;position:absolute;visibility:hidden;white-space:pre;';
   document.body.appendChild(probe);
   const charW = probe.getBoundingClientRect().width || 10;
   const charH = probe.getBoundingClientRect().height || 18;
@@ -111,8 +108,12 @@ function init() {
   const lookup = buildLookupTable(palette);
   let field = new Float32Array(COLS * ROWS);
 
-  // Fewer particles on mobile for performance
-  const particleCount = isMobile ? 25 : PARTICLE_COUNT;
+  // Mobile: fewer particles but faster/looser for lively feel
+  const particleCount = isMobile ? 30 : PARTICLE_COUNT;
+  const damping = isMobile ? 0.94 : DAMPING; // less damping = faster movement
+  const jitter = isMobile ? 0.6 : JITTER; // more jitter = more spread
+  const decay = isMobile ? 0.65 : BRIGHTNESS_DECAY; // faster decay = less static blobs
+  const attractStrength = isMobile ? 0.003 : ATTRACTOR_STRENGTH; // weaker pull = wider roam
   const particles: Particle[] = [];
   for (let i = 0; i < particleCount; i++) {
     particles.push({
@@ -154,7 +155,7 @@ function init() {
 
   let t = 0;
   let lastFrame = 0;
-  const FRAME_INTERVAL = 1000 / (isMobile ? 15 : 20); // slower on mobile
+  const FRAME_INTERVAL = 1000 / 20;
 
   function animate(now: number) {
     if (now - lastFrame < FRAME_INTERVAL) {
@@ -165,7 +166,7 @@ function init() {
     t += 0.033;
 
     // Decay
-    for (let i = 0; i < field.length; i++) field[i] *= BRIGHTNESS_DECAY;
+    for (let i = 0; i < field.length; i++) field[i] *= decay;
 
     // 4 attractors spread across the grid, orbiting on different paths
     // Scroll shifts their vertical positions
@@ -201,12 +202,12 @@ function init() {
       const dx = ax - p.x;
       const dy = ay - p.y;
       const dist = Math.sqrt(dx * dx + dy * dy) + 0.1;
-      p.vx += (dx / dist) * ATTRACTOR_STRENGTH * dist;
-      p.vy += (dy / dist) * ATTRACTOR_STRENGTH * dist;
-      p.vx *= DAMPING;
-      p.vy *= DAMPING;
-      p.vx += (Math.random() - 0.5) * JITTER;
-      p.vy += (Math.random() - 0.5) * JITTER;
+      p.vx += (dx / dist) * attractStrength * dist;
+      p.vy += (dy / dist) * attractStrength * dist;
+      p.vx *= damping;
+      p.vy *= damping;
+      p.vx += (Math.random() - 0.5) * jitter;
+      p.vy += (Math.random() - 0.5) * jitter;
       p.x += p.vx;
       p.y += p.vy;
 

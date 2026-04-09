@@ -462,12 +462,6 @@ section.visible .section-num {
     padding: 24px;
   }
 
-  .ascii-bg {
-    opacity: 0.05;
-    font-size: 10px;
-    line-height: 28px;
-    letter-spacing: 6px;
-  }
 }
 
 /* ===== Reduced Motion ===== */
