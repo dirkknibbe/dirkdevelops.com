@@ -1,0 +1,33 @@
+---
+import PretextHero from './PretextHero.tsx';
+---
+
+<section id="hero" class="hero-section">
+  <div class="hero-content">
+    <p class="hero-label reveal show">Software Engineer</p>
+    <PretextHero client:load />
+    <div class="hero-rule reveal reveal-delay-2 show"></div>
+    <p class="hero-desc reveal reveal-delay-3 show">
+      Building production systems at scale. Microservices, AI tooling, and
+      end-to-end feature ownership from database design through deployment.
+    </p>
+  </div>
+  <div class="scroll-hint">
+    <div class="line"></div>
+    <span>scroll</span>
+  </div>
+</section>
+
+<script>
+  let scrolled = false;
+  window.addEventListener('scroll', () => {
+    if (!scrolled && window.scrollY > 100) {
+      scrolled = true;
+      const hint = document.querySelector('.scroll-hint') as HTMLElement;
+      if (hint) {
+        hint.style.transition = 'opacity 0.5s';
+        hint.style.opacity = '0';
+      }
+    }
+  });
+</script>

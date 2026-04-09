@@ -1,12 +1,11 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import HeroSection from '../components/HeroSection.astro';
 ---
 
-<BaseLayout title="Dirk Knibbe — Software Engineer" description="Full-stack software engineer building production systems at scale.">
-  <section id="hero" class="hero-section">
-    <div class="hero-content">
-      <p class="hero-label">Software Engineer</p>
-      <h1 class="hero-name">Dirk Knibbe</h1>
-    </div>
-  </section>
+<BaseLayout
+  title="Dirk Knibbe — Software Engineer"
+  description="Full-stack software engineer building production systems at scale. TypeScript, Java, Spring Boot, Kafka, AI tooling."
+>
+  <HeroSection />
 </BaseLayout>
