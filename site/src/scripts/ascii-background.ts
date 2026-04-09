@@ -109,13 +109,13 @@ function init() {
   let field = new Float32Array(COLS * ROWS);
 
   // Mobile: fewer particles, faster decay so characters appear briefly then vanish
-  const particleCount = isMobile ? 15 : PARTICLE_COUNT;
+  const particleCount = isMobile ? 10 : PARTICLE_COUNT;
   const damping = isMobile ? 0.93 : DAMPING;
   const jitter = isMobile ? 0.7 : JITTER;
-  const decay = isMobile ? 0.55 : BRIGHTNESS_DECAY; // very fast decay = mostly blank
+  const decay = isMobile ? 0.45 : BRIGHTNESS_DECAY; // very fast decay = mostly blank
   const attractStrength = isMobile ? 0.002 : ATTRACTOR_STRENGTH;
-  const stampIntensity = isMobile ? 0.25 : PARTICLE_STAMP_INTENSITY;
-  const attractorIntensity = isMobile ? 0.3 : ATTRACTOR_STAMP_INTENSITY;
+  const stampIntensity = isMobile ? 0.18 : PARTICLE_STAMP_INTENSITY;
+  const attractorIntensity = isMobile ? 0.2 : ATTRACTOR_STAMP_INTENSITY;
   const particles: Particle[] = [];
   for (let i = 0; i < particleCount; i++) {
     particles.push({
