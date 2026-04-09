@@ -200,6 +200,7 @@ section.visible .section-num {
 
 /* ===== Project Cards ===== */
 .project-card {
+  display: block;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -207,6 +208,7 @@ section.visible .section-num {
   margin-bottom: 20px;
   max-width: 560px;
   transition: border-color 0.3s;
+  cursor: pointer;
 }
 
 .project-card:hover {
