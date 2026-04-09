@@ -5,9 +5,9 @@
  */
 
 // ---- Config ----
-const CHAR_W = 6.2; // approximate width of a monospace char at 9px
-const CHAR_H = 10;  // line-height
-const PARTICLE_COUNT = 120;
+const CHAR_W = 12; // wider spacing — fewer columns, better perf
+const CHAR_H = 18;  // taller rows — fewer rows, better perf
+const PARTICLE_COUNT = 80;
 const DAMPING = 0.97;
 const JITTER = 0.4;
 const BRIGHTNESS_DECAY = 0.78;
@@ -143,9 +143,16 @@ function init() {
   updateScroll();
 
   let t = 0;
+  let lastFrame = 0;
+  const FRAME_INTERVAL = 1000 / 30; // 30fps is plenty for a background effect
 
-  function animate() {
-    t += 0.016;
+  function animate(now: number) {
+    if (now - lastFrame < FRAME_INTERVAL) {
+      requestAnimationFrame(animate);
+      return;
+    }
+    lastFrame = now;
+    t += 0.033;
 
     // Decay
     for (let i = 0; i < field.length; i++) field[i] *= BRIGHTNESS_DECAY;

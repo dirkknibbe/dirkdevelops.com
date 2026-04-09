@@ -394,8 +394,9 @@ section.visible .section-num {
   overflow: hidden;
   opacity: 0.07;
   font-family: var(--font-mono);
-  font-size: 9px;
-  line-height: 10px;
+  font-size: 11px;
+  line-height: 18px;
+  letter-spacing: 2px;
   white-space: pre;
   color: var(--text-primary);
   user-select: none;
