@@ -91,9 +91,9 @@ function init() {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reducedMotion || window.innerWidth < 768) return;
 
-  // Compute grid to fill viewport
-  const COLS = Math.floor(window.innerWidth / CHAR_W);
-  const ROWS = Math.floor(window.innerHeight / CHAR_H);
+  // Compute grid to fill viewport — add extra to ensure full coverage
+  const COLS = Math.ceil(window.innerWidth / CHAR_W) + 2;
+  const ROWS = Math.ceil(window.innerHeight / CHAR_H) + 2;
 
   const palette = buildPalette();
   const lookup = buildLookupTable(palette);
