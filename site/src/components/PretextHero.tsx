@@ -11,6 +11,8 @@ const SPRING_MASS = 1;
 const STAGGER_DELAY_MS = 55; // ms between each character's spring activation
 
 interface CharState {
+  // The character
+  char: string;
   // Current animated values
   x: number;
   y: number;
@@ -123,6 +125,7 @@ export default function PretextHero() {
     const now = performance.now();
     startTimeRef.current = now;
     charStatesRef.current = charPositions.map((pos, i) => ({
+      char: pos.char,
       // Start from scattered positions — each char drops in from above with random horizontal offset
       x: pos.x + (Math.random() - 0.5) * fontSizeNum * 2,
       y: pos.y - fontSizeNum * 1.5 - Math.random() * fontSizeNum,

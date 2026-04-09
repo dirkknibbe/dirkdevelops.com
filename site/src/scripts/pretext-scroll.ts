@@ -61,7 +61,7 @@ function splitIntoCharSpans(el: HTMLElement): CharElement[] {
   el.setAttribute('aria-label', text);
 
   for (const c of chars) {
-    c.span.textContent = c.char;
+    c.span.textContent = c.char === ' ' ? '\u00A0' : c.char;
     c.span.style.display = 'inline-block';
     c.span.style.transition = 'transform 0.5s cubic-bezier(0.23, 1, 0.32, 1)';
     c.span.style.willChange = 'transform';
