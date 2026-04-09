@@ -5,8 +5,7 @@
  */
 
 // ---- Config ----
-const CHAR_W = 12; // wider spacing — fewer columns, better perf
-const CHAR_H = 18;  // taller rows — fewer rows, better perf
+// Character dimensions measured at runtime from actual rendered size
 const PARTICLE_COUNT = 80;
 const DAMPING = 0.97;
 const JITTER = 0.4;
@@ -91,9 +90,18 @@ function init() {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reducedMotion || window.innerWidth < 768) return;
 
-  // Compute grid to fill viewport — add extra to ensure full coverage
-  const COLS = Math.ceil(window.innerWidth / CHAR_W) + 2;
-  const ROWS = Math.ceil(window.innerHeight / CHAR_H) + 2;
+  // Measure actual character size by rendering a probe element
+  const probe = document.createElement('span');
+  probe.textContent = 'M';
+  probe.style.cssText = 'font-family:ui-monospace,"SF Mono",Monaco,Consolas,monospace;font-size:11px;line-height:18px;letter-spacing:2px;position:absolute;visibility:hidden;white-space:pre;';
+  document.body.appendChild(probe);
+  const charW = probe.getBoundingClientRect().width || 10;
+  const charH = probe.getBoundingClientRect().height || 18;
+  document.body.removeChild(probe);
+
+  // Fill entire viewport
+  const COLS = Math.ceil(window.innerWidth / charW) + 1;
+  const ROWS = Math.ceil(window.innerHeight / charH) + 1;
 
   const palette = buildPalette();
   const lookup = buildLookupTable(palette);
