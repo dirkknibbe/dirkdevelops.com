@@ -6,7 +6,7 @@
 
 // ---- Config ----
 // Character dimensions measured at runtime from actual rendered size
-const PARTICLE_COUNT = 80;
+const PARTICLE_COUNT = 50;
 const DAMPING = 0.97;
 const JITTER = 0.4;
 const BRIGHTNESS_DECAY = 0.78;
@@ -123,20 +123,17 @@ function init() {
   bg.className = 'ascii-bg';
   bg.setAttribute('aria-hidden', 'true');
 
-  // Create cell grid filling the viewport
-  const cells: HTMLSpanElement[][] = [];
+  // Create row elements — we'll update textContent per row (not per cell)
+  const rowEls: HTMLDivElement[] = [];
+  const rowStrings: string[] = [];
   for (let r = 0; r < ROWS; r++) {
     const rowDiv = document.createElement('div');
     rowDiv.className = 'ascii-bg-row';
-    const rowCells: HTMLSpanElement[] = [];
-    for (let c = 0; c < COLS; c++) {
-      const span = document.createElement('span');
-      span.textContent = '\u00A0';
-      rowDiv.appendChild(span);
-      rowCells.push(span);
-    }
+    const blank = '\u00A0'.repeat(COLS);
+    rowDiv.textContent = blank;
+    rowStrings.push(blank);
     bg.appendChild(rowDiv);
-    cells.push(rowCells);
+    rowEls.push(rowDiv);
   }
 
   document.body.appendChild(bg);
@@ -152,7 +149,7 @@ function init() {
 
   let t = 0;
   let lastFrame = 0;
-  const FRAME_INTERVAL = 1000 / 30; // 30fps is plenty for a background effect
+  const FRAME_INTERVAL = 1000 / 20; // 20fps — subtle background doesn't need more
 
   function animate(now: number) {
     if (now - lastFrame < FRAME_INTERVAL) {
@@ -222,23 +219,22 @@ function init() {
       splatGaussian(field, COLS, ROWS, a.x, a.y, GAUSSIAN_RADIUS * 1.5, ATTRACTOR_STAMP_INTENSITY);
     }
 
-    // Render
+    // Render — build one string per row, only update DOM if changed
     for (let r = 0; r < ROWS; r++) {
-      const rowCells = cells[r];
-      if (!rowCells) continue;
+      let row = '';
       for (let c = 0; c < COLS; c++) {
         const b = field[r * COLS + c];
-        const span = rowCells[c];
-        if (!span) continue;
-
         if (b < 0.02) {
-          if (span.textContent !== '\u00A0') span.textContent = '\u00A0';
+          row += '\u00A0';
         } else {
           const idx = Math.min(255, Math.floor(b * 255));
           const char = lookup[idx];
-          const displayed = char === ' ' ? '\u00A0' : char;
-          if (span.textContent !== displayed) span.textContent = displayed;
+          row += char === ' ' ? '\u00A0' : char;
         }
+      }
+      if (row !== rowStrings[r]) {
+        rowStrings[r] = row;
+        rowEls[r].textContent = row;
       }
     }
 
