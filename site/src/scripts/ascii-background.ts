@@ -108,12 +108,14 @@ function init() {
   const lookup = buildLookupTable(palette);
   let field = new Float32Array(COLS * ROWS);
 
-  // Mobile: fewer particles but faster/looser for lively feel
-  const particleCount = isMobile ? 30 : PARTICLE_COUNT;
-  const damping = isMobile ? 0.94 : DAMPING; // less damping = faster movement
-  const jitter = isMobile ? 0.6 : JITTER; // more jitter = more spread
-  const decay = isMobile ? 0.65 : BRIGHTNESS_DECAY; // faster decay = less static blobs
-  const attractStrength = isMobile ? 0.003 : ATTRACTOR_STRENGTH; // weaker pull = wider roam
+  // Mobile: fewer particles, faster decay so characters appear briefly then vanish
+  const particleCount = isMobile ? 15 : PARTICLE_COUNT;
+  const damping = isMobile ? 0.93 : DAMPING;
+  const jitter = isMobile ? 0.7 : JITTER;
+  const decay = isMobile ? 0.55 : BRIGHTNESS_DECAY; // very fast decay = mostly blank
+  const attractStrength = isMobile ? 0.002 : ATTRACTOR_STRENGTH;
+  const stampIntensity = isMobile ? 0.25 : PARTICLE_STAMP_INTENSITY;
+  const attractorIntensity = isMobile ? 0.3 : ATTRACTOR_STAMP_INTENSITY;
   const particles: Particle[] = [];
   for (let i = 0; i < particleCount; i++) {
     particles.push({
@@ -217,12 +219,12 @@ function init() {
       if (p.y < 0) p.y += ROWS;
       if (p.y >= ROWS) p.y -= ROWS;
 
-      splatGaussian(field, COLS, ROWS, p.x, p.y, GAUSSIAN_RADIUS, PARTICLE_STAMP_INTENSITY);
+      splatGaussian(field, COLS, ROWS, p.x, p.y, GAUSSIAN_RADIUS, stampIntensity);
     }
 
     // Splat attractors
     for (const a of attractors) {
-      splatGaussian(field, COLS, ROWS, a.x, a.y, GAUSSIAN_RADIUS * 1.5, ATTRACTOR_STAMP_INTENSITY);
+      splatGaussian(field, COLS, ROWS, a.x, a.y, GAUSSIAN_RADIUS * 1.5, attractorIntensity);
     }
 
     // Render — build one string per row, only update DOM if changed
