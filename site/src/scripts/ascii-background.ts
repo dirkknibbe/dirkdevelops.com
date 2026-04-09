@@ -91,10 +91,13 @@ function init() {
   if (reducedMotion) return;
   const isMobile = window.innerWidth < 768;
 
-  // Measure actual character size by rendering a probe element
+  // Measure actual character size — use mobile-matched styles on small screens
+  const fontSize = isMobile ? '10px' : '11px';
+  const lineHeight = isMobile ? '28px' : '18px';
+  const letterSpacing = isMobile ? '6px' : '2px';
   const probe = document.createElement('span');
   probe.textContent = 'M';
-  probe.style.cssText = 'font-family:ui-monospace,"SF Mono",Monaco,Consolas,monospace;font-size:11px;line-height:18px;letter-spacing:2px;position:absolute;visibility:hidden;white-space:pre;';
+  probe.style.cssText = `font-family:ui-monospace,"SF Mono",Monaco,Consolas,monospace;font-size:${fontSize};line-height:${lineHeight};letter-spacing:${letterSpacing};position:absolute;visibility:hidden;white-space:pre;`;
   document.body.appendChild(probe);
   const charW = probe.getBoundingClientRect().width || 10;
   const charH = probe.getBoundingClientRect().height || 18;
