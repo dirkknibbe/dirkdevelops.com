@@ -145,12 +145,19 @@ section.visible .section-num {
 }
 
 .hero-name {
-  font-size: clamp(44px, 8vw, 72px);
+  font-size: clamp(56px, 11vw, 140px);
   font-weight: 200;
   letter-spacing: -3px;
   line-height: 1;
   margin-bottom: 8px;
   min-height: 1.2em;
+}
+
+.hero-name svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  overflow: visible;
 }
 
 .hero-rule {
@@ -477,7 +484,4 @@ section.visible .section-num {
     opacity: 0.6;
   }
 
-  .hero-name canvas {
-    /* Pretext handles reduced-motion internally */
-  }
 }
