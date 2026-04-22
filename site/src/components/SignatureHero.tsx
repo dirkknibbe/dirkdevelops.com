@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { TegakiRenderer } from 'tegaki/react';
 import bundle from '../fonts/nothing-you-could-do/bundle';
 
-const SPEED = 1.8;
+const SPEED = 3.2;
 const INTERSECTION_THRESHOLD = 0.5;
 
 export default function SignatureHero() {
